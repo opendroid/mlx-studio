@@ -1,0 +1,51 @@
+# Operating-system and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local environments, secrets, and machine-specific settings
+.venv/
+.env
+.env.*
+!.env.example
+.local/
+configs/local*.yaml
+configs/local*.yml
+
+# Python caches and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Downloaded models and ML runtime caches
+models/
+checkpoints/
+weights/
+adapters/
+*.gguf
+*.safetensors
+*.ckpt
+*.onnx
+*.mlmodel
+*.mlpackage
+*.npz
+.cache/
+.ollama/
+
+# User-provided source media, generated media, and runtime logs
+inputs/**
+audio/**
+images/**
+video/**
+outputs/**
+logs/**
+demos/web/generated/**
+
+# Keep the demo source itself tracked.
+!demos/web/index.html

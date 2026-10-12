@@ -1,0 +1,3 @@
+interface:
+  display_name: "MLX Local Workflows"
+  short_description: "Build local MLX Studio workflows"

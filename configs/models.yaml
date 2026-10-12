@@ -1,0 +1,47 @@
+paths:
+  mlx_examples: ~/Developer/build/py3-code/mlx-examples
+  model_cache: .local/models
+
+runtime:
+  conda_environment: mlx
+  dependency_policy: protected-no-updates
+  preference: mlx-first
+
+ollama:
+  text:
+    general: qwen3:32b
+    coding: qwen3-coder:30b
+    reasoning: gpt-oss:20b
+  vision:
+    understanding: qwen3-vl:30b
+  image_generation:
+    fast: x/flux2-klein:latest
+    quality: x/z-image-turbo:latest
+
+mlx_workflows:
+  text:
+    source: llms
+    purpose: direct local generation, processing, and classification
+  audio:
+    transcription:
+      source: whisper
+      package: mlx-whisper
+      state: planned
+    speech:
+      source: mlx-audio
+      state: installed
+    music:
+      source: musicgen
+      state: planned
+  image:
+    generation:
+      source: flux
+      state: available-in-reference
+  video:
+    generation:
+      source: video/wan2.1
+      default_model: Wan-AI/Wan2.1-T2V-1.3B
+      optional_models:
+        - Wan-AI/Wan2.1-T2V-14B
+        - Wan-AI/Wan2.1-I2V-14B-480P
+      state: available-in-reference

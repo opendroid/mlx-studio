@@ -1,0 +1,21 @@
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = [
+  "audio",
+  "images",
+  "inputs",
+  "logs",
+  "outputs",
+  "video",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mlx_studio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
