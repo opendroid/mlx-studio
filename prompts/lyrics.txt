@@ -1,0 +1,8 @@
+/no_think
+
+Write original song lyrics for a {mood} {genre} track about {theme}.
+
+Return final lyrics only. Do not include reasoning, thinking, planning,
+commentary, Markdown fences, or an introduction. Your first line must begin
+exactly with `Title:`. Then provide four lines each for `[Verse 1]`,
+`[Chorus]`, `[Verse 2]`, `[Chorus]`, `[Bridge]`, and `[Final Chorus]`.

@@ -7,8 +7,8 @@ models.
 
 ## Boundaries
 
-- `mlx` is the project Conda environment and is protected. This project never
-  updates it.
+- `mlx` is the project Conda environment and is protected. This project changes
+  it only when the user explicitly authorizes a named dependency.
 - Quality tools run in isolated `uvx` environments through the Makefile, so
   they do not alter the ML runtime.
 - `~/Developer/build/py3-code/mlx-examples` remains an unmodified upstream
@@ -37,7 +37,7 @@ logs/           Runtime logs (ignored)
 | --- | --- | --- |
 | Text processing and classification | MLX LLMs; Ollama Qwen for interactive work | `llms/` |
 | Transcription and synthetic speech | `mlx-whisper`, `mlx-audio` | `whisper/` |
-| Synthetic music | MLX MusicGen | `musicgen/` |
+| Synthetic music | MLX Audio MiniMax Music 3 | `mlx_audio.music` |
 | Image creation and management | Ollama image models; direct MLX FLUX when control matters | `flux/` |
 | GIFs and video | FFmpeg plus MLX Wan 2.1 | `video/wan2.1/` |
 

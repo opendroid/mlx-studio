@@ -18,4 +18,5 @@ known-first-party = ["mlx_studio"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-q"

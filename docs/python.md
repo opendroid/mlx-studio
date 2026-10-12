@@ -3,7 +3,8 @@
 ## Environment and dependencies
 
 - The `mlx` Conda environment is immutable project baseline. Do not install,
-  upgrade, remove, or otherwise update packages in it.
+  upgrade, remove, or otherwise update packages in it unless the user
+  explicitly authorizes a named dependency.
 - Run all ML workflows with `conda activate mlx`. Keep runtime dependencies
   minimal and record a dependency before relying on it.
 - Use the Makefile's isolated `uvx` invocations for Ruff and pytest. Those

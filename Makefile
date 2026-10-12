@@ -4,7 +4,7 @@ PORT ?= 8080
 
 .DEFAULT_GOAL := help
 
-.PHONY: help format lint test check demo
+.PHONY: help format lint test check demo music-demo
 
 help: ## Show available project commands.
 	@awk 'BEGIN {FS = ":.*##"}; /^[a-zA-Z_-]+:.*##/ {printf "%-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -24,3 +24,6 @@ check: lint test ## Run all local quality checks.
 
 demo: ## Serve browser demos at http://127.0.0.1:$(PORT).
 	$(PYTHON) -m http.server $(PORT) --directory demos/web
+
+music-demo: ## Run the local lyric-to-synth-music demo at http://127.0.0.1:$(PORT).
+	$(PYTHON) demos/web/music_demo.py --port $(PORT)

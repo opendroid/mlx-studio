@@ -31,8 +31,11 @@ mlx_workflows:
       source: mlx-audio
       state: installed
     music:
-      source: musicgen
-      state: planned
+      source: mlx-audio/music
+      default_model: mlx-community/MiniMax-Music3-4bit
+      cache_path: .local/models/huggingface
+      lyric_conditioning: structured
+      state: download-required
   image:
     generation:
       source: flux

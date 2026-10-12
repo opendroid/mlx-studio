@@ -1,0 +1,3 @@
+{mood} {genre} synth-pop song about {theme}; clear lead singer, melodic vocals,
+analog synthesizer arpeggios, melodic bass, layered pads, crisp electronic
+drums, polished studio production

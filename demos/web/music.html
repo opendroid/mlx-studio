@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <title>Lyric to Synth | MLX Studio</title>
+    <style>
+      :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      body { background: #10131a; color: #edf2f7; margin: 0; }
+      main { margin: 0 auto; max-width: 1180px; padding: 3rem 1.5rem 5rem; }
+      a { color: #8dd5ff; }
+      h1 { font-size: clamp(2rem, 6vw, 4rem); margin: .65rem 0; }
+      .intro, label, small { color: #b6c2d2; line-height: 1.55; }
+      .grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); margin-top: 2rem; }
+      .panel { background: #19202c; border: 1px solid #2c384c; border-radius: 14px; padding: 1.25rem; }
+      .run-state { background: #10131a; padding: .65rem 0; position: sticky; top: 0; z-index: 2; }
+      label { display: block; font-weight: 650; margin-bottom: .9rem; }
+      .field-row, .music-actions { display: grid; gap: .85rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .field-row label, .music-actions label { margin-bottom: .9rem; }
+      .music-actions { align-items: end; }
+      .music-actions button { margin: 0 0 .9rem; }
+      input, select, textarea, button { font: inherit; width: 100%; }
+      input, select, textarea { background: #101722; border: 1px solid #45546b; border-radius: 8px; color: #edf2f7; margin-top: .35rem; padding: .7rem; }
+      textarea { min-height: 250px; resize: vertical; }
+      .lyrics-field textarea { min-height: 420px; }
+      .prompt-field textarea { min-height: 150px; }
+      button { background: #7cdbb0; border: 0; border-radius: 8px; color: #082016; cursor: pointer; font-weight: 750; margin-top: .6rem; padding: .8rem 1rem; }
+      button.secondary { background: #33445d; color: #edf2f7; }
+      button:disabled { cursor: wait; opacity: .58; }
+      .activity { align-items: center; background: #19202c; border: 1px solid #2c384c; border-radius: 10px; display: flex; gap: .8rem; padding: .8rem 1rem; }
+      .activity[hidden] { display: none; }
+      .spinner { animation: spin .8s linear infinite; border: 3px solid #43546e; border-radius: 50%; border-top-color: #7cdbb0; flex: 0 0 auto; height: 1.35rem; width: 1.35rem; }
+      .activity-message { flex: 1; }
+      .activity-message strong, .activity-message small { display: block; }
+      progress { accent-color: #7cdbb0; margin-top: .4rem; width: 100%; }
+      .status { border-left: 3px solid #7cdbb0; margin: .75rem 0 0; padding: .6rem .8rem; white-space: pre-wrap; }
+      .status.error { border-color: #ff8a8a; color: #ffd0d0; }
+      .hidden { display: none; }
+      audio { margin-top: 1rem; width: 100%; }
+      @media (max-width: 760px) {
+        .grid, .field-row, .music-actions { grid-template-columns: 1fr; }
+        .lyrics-field textarea { min-height: 300px; }
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a href="index.html">← MLX Studio</a>
+      <h1>Lyric to Synth</h1>
+      <p class="intro">Draft a full song with a local LLM, then make a matching vocal synth-pop track with MLX Audio's MiniMax Music 3. The model receives the style caption and your complete lyric sheet separately.</p>
+      <div class="run-state">
+        <section class="activity" id="activity" hidden aria-live="polite" aria-busy="true">
+          <span class="spinner" aria-hidden="true"></span>
+          <div class="activity-message">
+            <strong id="activity-title">Working locally…</strong>
+            <small id="activity-elapsed">Elapsed: 0:00</small>
+            <progress aria-label="Generation in progress"></progress>
+          </div>
+        </section>
+        <p class="status" id="status">Checking local music prerequisites…</p>
+      </div>
+      <div class="grid">
+        <form class="panel" id="song-form">
+          <label>Theme<input name="theme" value="a midnight drive through the city" required maxlength="240"></label>
+          <div class="field-row">
+            <label>Mood<select name="mood"><option>hopeful</option><option>dreamy</option><option>energetic</option><option>melancholic</option></select></label>
+            <label>Genre<select name="genre"><option>synth-pop</option><option>pop rap</option><option>ambient electronic</option><option>retro wave</option><option>electronic dance</option></select></label>
+          </div>
+          <button id="lyrics-button" type="submit">1. Generate lyrics</button>
+          <small>The server calls local Ollama using <code>qwen3:32b</code>.</small>
+          <label class="lyrics-field">Generated lyrics<textarea id="lyrics" placeholder="Your lyrics will appear here."></textarea></label>
+          <small>You can edit the lyrics before continuing.</small>
+        </form>
+        <section class="panel">
+          <div class="music-actions">
+            <label>Song duration<select id="duration-seconds"><option value="30">30 seconds (preview)</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes</option></select></label>
+            <button class="secondary" id="music-button" type="button" disabled>2. Generate 60-second synth-pop song</button>
+          </div>
+          <audio id="player" class="hidden" controls></audio>
+          <label class="prompt-field">Music prompt<textarea id="music-prompt" placeholder="A MiniMax Music 3 style prompt will appear here."></textarea></label>
+          <small>Edit the style prompt before generating music.</small>
+        </section>
+      </div>
+    </main>
+    <script>
+      const status = document.querySelector("#status");
+      const lyrics = document.querySelector("#lyrics");
+      const prompt = document.querySelector("#music-prompt");
+      const lyricsButton = document.querySelector("#lyrics-button");
+      const musicButton = document.querySelector("#music-button");
+      const durationSelect = document.querySelector("#duration-seconds");
+      const player = document.querySelector("#player");
+      const activity = document.querySelector("#activity");
+      const activityTitle = document.querySelector("#activity-title");
+      const activityElapsed = document.querySelector("#activity-elapsed");
+      let progressTimer;
+
+      function showStatus(message, error = false) {
+        status.textContent = message;
+        status.classList.toggle("error", error);
+      }
+
+      function startProgress(message) {
+        const startedAt = Date.now();
+        activityTitle.textContent = message;
+        activity.hidden = false;
+        clearInterval(progressTimer);
+        const updateElapsed = () => {
+          const seconds = Math.floor((Date.now() - startedAt) / 1000);
+          activityElapsed.textContent = `Elapsed: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+        };
+        updateElapsed();
+        progressTimer = setInterval(updateElapsed, 1_000);
+      }
+
+      function stopProgress() {
+        clearInterval(progressTimer);
+        activity.hidden = true;
+      }
+
+      function formatDuration(seconds) {
+        return seconds < 60 ? `${seconds}-second` : `${seconds / 60}-minute`;
+      }
+
+      function selectedDurationLabel() {
+        return formatDuration(Number(durationSelect.value));
+      }
+
+      function updateMusicButtonLabel() {
+        musicButton.textContent = `2. Generate ${selectedDurationLabel()} synth-pop song`;
+      }
+
+      async function request(path, body) {
+        const response = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "The local service returned an error.");
+        return data;
+      }
+
+      document.querySelector("#song-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        lyricsButton.disabled = true;
+        showStatus("Writing lyrics locally…");
+        startProgress("Writing lyrics with local Qwen…");
+        try {
+          const data = await request("/api/lyrics", Object.fromEntries(new FormData(event.currentTarget)));
+          lyrics.value = data.lyrics;
+          prompt.value = data.music_prompt;
+          musicButton.disabled = false;
+          showStatus("Lyrics are ready. Edit the style prompt if needed, then generate the vocal track.");
+        } catch (error) {
+          showStatus(error.message, true);
+        } finally {
+          lyricsButton.disabled = false;
+          stopProgress();
+        }
+      });
+
+      durationSelect.addEventListener("change", updateMusicButtonLabel);
+      updateMusicButtonLabel();
+
+      musicButton.addEventListener("click", async () => {
+        musicButton.disabled = true;
+        player.classList.add("hidden");
+        const durationSeconds = Number(durationSelect.value);
+        showStatus(`Generating a ${selectedDurationLabel()} synth-pop song. This may take several minutes.`);
+        startProgress(`Generating a ${selectedDurationLabel()} synth-pop song with MiniMax Music 3…`);
+        try {
+          const data = await request("/api/music", { music_prompt: prompt.value, lyrics: lyrics.value, duration_seconds: durationSeconds });
+          player.src = data.audio_url;
+          player.classList.remove("hidden");
+          showStatus(`Your ${formatDuration(data.duration_seconds)} synth-pop song is ready.`);
+        } catch (error) {
+          showStatus(error.message, true);
+        } finally {
+          musicButton.disabled = false;
+          stopProgress();
+        }
+      });
+
+      fetch("/api/health")
+        .then((response) => response.json())
+        .then((data) => {
+          const music = data.music_issues.length ? ` Music is not ready: ${data.music_issues.join(" ")}` : " Music is ready.";
+          showStatus(`Ollama: ${data.ollama_model}. Song model: ${data.music_model}.${music}`);
+        })
+        .catch(() => showStatus("Could not reach the local demo server.", true));
+    </script>
+  </body>
+</html>

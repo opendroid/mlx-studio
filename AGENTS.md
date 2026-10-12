@@ -15,7 +15,8 @@ examples for direct, reproducible workflows.
 
 - Run ML workflows with the existing Conda environment named `mlx`:
   `conda activate mlx`. It is protected. Never run package installs, upgrades,
-  removals, or environment updates against it.
+  removals, or environment updates against it unless the user explicitly
+  authorizes a named dependency.
 - Run code-quality tools through the Makefile. Its isolated `uvx` tools must
   not add packages to the `mlx` environment.
 - Do not edit the upstream checkout at
@@ -30,3 +31,14 @@ examples for direct, reproducible workflows.
   narrowly scoped agent guidance in `skills/`.
 - Make browser-visible demos under `demos/web/`. Use an HTML interface or a
   local web container rather than a native GUI as the primary demo surface.
+
+## Prompt policy
+
+- Store every model prompt and prompt template in the tracked top-level
+  `prompts/` directory. Do not embed prompt text in Python, JavaScript, or
+  shell callers.
+- Load a prompt file as a string in the caller and interpolate only validated
+  input values.
+- For interactive models that support it, explicitly request final output only
+  and no visible reasoning. Preserve an editable result field in demos where a
+  human may want to refine generated content.
